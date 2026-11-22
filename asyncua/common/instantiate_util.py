@@ -5,7 +5,7 @@ Instantiate a new node and its child nodes from a node type.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 import asyncua
 from asyncua import ua
@@ -107,7 +107,7 @@ async def _instantiate_node(
         _logger.error("Instantiate: Node class not supported: %s", rdesc.NodeClass)
         raise RuntimeError("Instantiate: Node class not supported")
     if dname is not None:
-        addnode.NodeAttributes.DisplayName = dname
+        cast(ua.NodeAttributes, addnode.NodeAttributes).DisplayName = dname
 
     res = (await session.add_nodes([addnode]))[0]
     added_nodes = [res.AddedNodeId]

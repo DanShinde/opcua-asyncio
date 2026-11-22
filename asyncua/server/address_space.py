@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
@@ -382,7 +382,7 @@ class NodeManagementService:
         desc.NodeId = nodedata.nodeid
         desc.NodeClass = item.NodeClass
         desc.BrowseName = item.BrowseName
-        desc.DisplayName = item.NodeAttributes.DisplayName
+        desc.DisplayName = cast(ua.NodeAttributes, item.NodeAttributes).DisplayName
         desc.TypeDefinition = item.TypeDefinition
         desc.IsForward = True  # FIXME in uaprotocol_auto.py
         self._add_unique_reference(parentdata, desc)  # FIXME return StatusCode is not evaluated

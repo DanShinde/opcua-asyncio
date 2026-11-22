@@ -442,7 +442,7 @@ class Subscription:
             await self.recreate()
             return
         params = ua.TransferSubscriptionsParameters()
-        params.SubscriptionIds = [self.subscription_id]
+        params.SubscriptionIds = [ua.UInt32(self.subscription_id)]
         params.SendInitialValues = False
         try:
             results = await self.server.transfer_subscriptions(params)
@@ -826,7 +826,7 @@ class Subscription:
         if recreate_count != self._recreate_count:
             self._forget_monitored_items(params.ItemsToCreate, recreate_count)
             raise ua.UaStatusCodeError(ua.StatusCodes.BadSubscriptionIdInvalid)
-        mids = []
+        mids: list[int | ua.StatusCode] = []
         # process result, add server_handle, or remove it if failed
         for idx, result in enumerate(results):
             mi = params.ItemsToCreate[idx]
@@ -1004,7 +1004,7 @@ class Subscription:
         if self.subscription_id is None:
             raise ua.uaerrors.UaError("set_publishing_mode() called before subscription was created on the server.")
         params = ua.SetPublishingModeParameters()
-        params.SubscriptionIds = [self.subscription_id]
+        params.SubscriptionIds = [ua.UInt32(self.subscription_id)]
         params.PublishingEnabled = publishing
         result = await self.server.set_publishing_mode(params)
         if result[0].is_good():

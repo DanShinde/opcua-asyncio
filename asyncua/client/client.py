@@ -1152,8 +1152,9 @@ class Client:
         return res
 
     def _add_anonymous_auth(self, params: ua.ActivateSessionParameters) -> None:
-        params.UserIdentityToken = ua.AnonymousIdentityToken()
-        params.UserIdentityToken.PolicyId = self.server_policy(ua.UserTokenType.Anonymous).PolicyId
+        token = ua.AnonymousIdentityToken()
+        token.PolicyId = self.server_policy(ua.UserTokenType.Anonymous).PolicyId
+        params.UserIdentityToken = token
 
     def _add_certificate_auth(
         self,
@@ -1162,22 +1163,23 @@ class Client:
         challenge: bytes,
         certificate_chain: list[x509.Certificate] | None = None,
     ) -> None:
-        params.UserIdentityToken = ua.X509IdentityToken()
-        params.UserIdentityToken.CertificateData = uacrypto.der_from_x509(certificate)
+        token = ua.X509IdentityToken()
+        token.CertificateData = uacrypto.der_from_x509(certificate)
         certificate_chain = certificate_chain or []
         for cert in certificate_chain:
-            params.UserIdentityToken.CertificateData += uacrypto.der_from_x509(cert)
+            token.CertificateData += uacrypto.der_from_x509(cert)
         # specs part 4, 5.6.3.1: the data to sign is created by appending
         # the last serverNonce to the serverCertificate
         policy = self.server_policy(ua.UserTokenType.Certificate)
         sig, alg = security_policies.sign_asymmetric(self.user_private_key, challenge, policy.SecurityPolicyUri)
-        params.UserIdentityToken.PolicyId = policy.PolicyId
+        token.PolicyId = policy.PolicyId
+        params.UserIdentityToken = token
         params.UserTokenSignature.Algorithm = alg
         params.UserTokenSignature.Signature = sig
 
     def _add_user_auth(self, params: ua.ActivateSessionParameters, username: str | None, password: str | None) -> None:
-        params.UserIdentityToken = ua.UserNameIdentityToken()
-        params.UserIdentityToken.UserName = username
+        token = ua.UserNameIdentityToken()
+        token.UserName = username
         policy = self.server_policy(ua.UserTokenType.UserName)
         if not policy.SecurityPolicyUri or policy.SecurityPolicyUri == security_policies.SecurityPolicyNone.URI:
             # see specs part 4, 7.36.3: if the token is NOT encrypted,
@@ -1186,13 +1188,14 @@ class Client:
             if password:
                 if self.security_policy.Mode != ua.MessageSecurityMode.SignAndEncrypt:
                     _logger.warning("Sending plain-text password")
-                params.UserIdentityToken.Password = password.encode("utf8")
-            params.UserIdentityToken.EncryptionAlgorithm = None
+                token.Password = password.encode("utf8")
+            token.EncryptionAlgorithm = None
         elif password:
             data, uri = self._encrypt_password(password, policy.SecurityPolicyUri)
-            params.UserIdentityToken.Password = data
-            params.UserIdentityToken.EncryptionAlgorithm = uri
-        params.UserIdentityToken.PolicyId = policy.PolicyId
+            token.Password = data
+            token.EncryptionAlgorithm = uri
+        token.PolicyId = policy.PolicyId
+        params.UserIdentityToken = token
 
     def _encrypt_password(self, password: str, policy_uri: str) -> tuple[bytes, str]:
         pubkey = uacrypto.x509_from_der(self.security_policy.peer_certificate).public_key()

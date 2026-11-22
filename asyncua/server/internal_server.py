@@ -451,7 +451,7 @@ class InternalServer:
         """
         unpack the username and password for the benefit of the user defined user manager
         """
-        user_name = token.UserName
+        user_name: str = token.UserName
         password = token.Password
 
         # TODO check if algorithm is allowed, throw BadSecurityPolicyRejected if not
@@ -468,11 +468,9 @@ class InternalServer:
                 self.logger.warning("Unknown password encoding %s", token.EncryptionAlgorithm)
                 raise ValueError("Unknown password encoding")
             length = unpack_from("<I", raw_pw)[0] - len(isession.nonce)
-            password = raw_pw[4 : 4 + length]
-            password = password.decode("utf-8")
-        elif isinstance(password, bytes):
-            password = password.decode("utf-8")
-
+            return user_name, raw_pw[4 : 4 + length].decode("utf-8")
+        if isinstance(password, bytes):
+            return user_name, password.decode("utf-8")
         return user_name, password
 
     def verify_x509_token(self, isession: Any, token: ua.X509IdentityToken, signature: ua.SignatureData) -> bytes:

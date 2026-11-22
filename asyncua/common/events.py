@@ -110,7 +110,7 @@ class Event:
         ev.event_fields = fields
         for idx, sattr in enumerate(select_clauses):
             if len(sattr.BrowsePath) == 0:
-                name = sattr.AttributeId.name
+                name = ua.AttributeIds(sattr.AttributeId).name
             else:
                 name = Event.browse_path_to_attribute_name(sattr.BrowsePath)
             ev.add_property(name, fields[idx].Value, fields[idx].VariantType)

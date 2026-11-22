@@ -7,6 +7,7 @@ Date:2026-11-03 20:44:07.352681+00:00
 from datetime import datetime, timezone
 from enum import IntEnum, IntFlag
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from asyncua.ua.uatypes import SByte, Byte, Bytes, ByteString, Int16, Int32, Int64, UInt16, UInt32
 from asyncua.ua.uatypes import UInt64, Boolean, Float, Double, Null, String, CharArray, DateTime, Guid
@@ -16,6 +17,9 @@ from asyncua.ua.uatypes import RelativePath, RelativePathElement
 from asyncua.ua.uatypes import NodeId, FourByteNodeId, ExpandedNodeId, ExtensionObject, DiagnosticInfo
 from asyncua.ua.uatypes import typeid_by_extension_objects, extension_objects_by_typeid
 from asyncua.ua.object_ids import ObjectIds
+
+if TYPE_CHECKING:
+    from asyncua import ua
 
 
 Image = ByteString

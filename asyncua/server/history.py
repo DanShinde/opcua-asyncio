@@ -359,21 +359,20 @@ class HistoryManager:
         """
         result = ua.HistoryReadResult()
         if isinstance(details, ua.ReadRawModifiedDetails):
-            if details.IsReadModified:
-                result.HistoryData = ua.HistoryModifiedData()
-                # we do not support modified history by design so we return what we have
-            else:
-                result.HistoryData = ua.HistoryData()
+            # we do not support modified history by design so we return what we have
+            history_data = ua.HistoryModifiedData() if details.IsReadModified else ua.HistoryData()
             dv, cont = await self._read_datavalue_history(rv, details)
-            result.HistoryData.DataValues = dv
+            history_data.DataValues = dv
+            result.HistoryData = history_data
             result.ContinuationPoint = cont
 
         elif isinstance(details, ua.ReadEventDetails):
-            result.HistoryData = ua.HistoryEvent()
+            history_event = ua.HistoryEvent()
             # FIXME: filter is a cumbersome type, maybe transform it something easier
             # to handle for storage
             ev, cont = await self._read_event_history(rv, details)
-            result.HistoryData.Events = ev
+            history_event.Events = ev
+            result.HistoryData = history_event
             result.ContinuationPoint = cont
 
         else:

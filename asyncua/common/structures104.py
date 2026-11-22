@@ -277,13 +277,14 @@ def make_structure(
         seen_names.add(fname)
         dep_cls: type | None = None
         is_self_ref = False
-        if sfield.DataType.NamespaceIndex == 0 and sfield.DataType.Identifier in ua.ObjectIdNames:
-            if sfield.DataType.Identifier == 24:
+        field_type_id = sfield.DataType.Identifier
+        if sfield.DataType.NamespaceIndex == 0 and isinstance(field_type_id, int) and field_type_id in ua.ObjectIdNames:
+            if field_type_id == 24:
                 uatype_name = "Variant"
-            elif sfield.DataType.Identifier == 22:
+            elif field_type_id == 22:
                 uatype_name = "ExtensionObject"
             else:
-                uatype_name = ua.ObjectIdNames[sfield.DataType.Identifier]
+                uatype_name = ua.ObjectIdNames[field_type_id]
         elif sfield.DataType == data_type:
             is_self_ref = True
             uatype_name = struct_name
@@ -525,6 +526,8 @@ async def load_custom_struct_xml_import(node_id: ua.NodeId, attrs: ua.DataTypeAt
     This function is used to load custom structs from xmlimporter
     """
     name = attrs.DisplayName.Text
+    if name is None:
+        raise ua.UaError(f"DataType {node_id} has no DisplayName text")
     existing = getattr(ua, name, None)
     if existing is not None and getattr(existing, "data_type", None) == node_id:
         return existing
@@ -803,6 +806,8 @@ async def load_enum_xml_import(node_id: ua.NodeId, attrs: ua.DataTypeAttributes,
     This function is used to load enums from xmlimporter
     """
     name = attrs.DisplayName.Text
+    if name is None:
+        raise ua.UaError(f"DataType {node_id} has no DisplayName text")
     existing = getattr(ua, name, None)
     if existing is not None and getattr(existing, "data_type", None) == node_id:
         return existing
